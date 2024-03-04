@@ -1,0 +1,49 @@
+
+
+Database Search Engine:
+
+
+Databases Level   ---> Main Menu
+---------------
+1- User will be able to Create new DB
+2- User will be able to Open specific DB       ---> Table Level
+3- User will be able to Delete specific DB
+4- User will be able to List all available DBs
+5- Exit 
+
+
+Tables Level
+------------
+1- User will be able to List all Tables inside a DB
+2- User will be able to Create new table
+3- User will be able to Delete specific table
+4- User will be able to Show content of specific table
+5- Open specific table            ---> Records Level
+6- Disconnect        ---> Return to Databases Level
+7- Exit
+
+
+Records Level
+-------------
+1- Insert 
+2- Delete 
+3- Update 
+4- Select 
+6- Disconnect     ---> Return to Tables Level
+7- Exit
+
+
+
+-->> two types (STRING, Integers) 
+-->> each table has a PK
+
+---
+
+BONUS
+- Enable User to write SQL queries 
+- GUI
+
+Notes
+- The Database will be stored as a Directory on Current Script File
+- Ask about columns datatypes in create table and check on them in both insert and update
+- Ask about primary key in create table and check for it in the insert into table
