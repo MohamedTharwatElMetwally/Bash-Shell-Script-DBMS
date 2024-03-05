@@ -14,21 +14,21 @@ Databases Level   ---> Main Menu
 
 Tables Level
 ------------
-1- User will be able to List all Tables inside a DB
-2- User will be able to Create new table
-3- User will be able to Delete specific table
-4- User will be able to Show content of specific table
-5- Open specific table            ---> Records Level
-6- Disconnect        ---> Return to Databases Level
+1- User will be able to List all Tables inside a DB               --->  Tharwat  
+2- User will be able to Create new table                          --->  Refaat
+3- User will be able to Delete specific table                     --->  Refaat
+4- User will be able to Show content of specific table            --->  Tharwat
+5- Open specific table            ---> Records Level              --->  Tharwat
+6- Disconnect        ---> Return to Databases Level               
 7- Exit
 
 
 Records Level
 -------------
-1- Insert 
-2- Delete 
-3- Update 
-4- Select 
+1- Insert                                         --->  Refaat
+2- Delete                                         --->  Refaat
+3- Update                                         --->  Tharwat
+4- Select                                          --->  Tharwat
 6- Disconnect     ---> Return to Tables Level
 7- Exit
 
@@ -51,3 +51,39 @@ Notes
 
 
 
+
+
+
+for each table:
+----------------
+
+1- metadata
+
+field_name:datatype:pk:required
+field_name:datatype:pk:required
+field_name:datatype:pk:required
+
+datatype ==> string or int
+pk ==> 0 or 1
+required ==> 0 or 1
+
+
+2- data
+
+field_name:field_name:field_name
+value:value:value
+value:value:value
+value:value:value
+
+
+
+Naming Rules:
+-------------
+database ===> .db
+tables ===> .tbl
+metadata ===> .meta
+
+
+Regex:
+------
+^[a-zA-Z]+[a-zA-Z0-9_]+$
