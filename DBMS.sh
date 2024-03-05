@@ -90,6 +90,7 @@ do
 					echo Metadata file created.
 				else
 					echo Metadata file creation failed. Please check that the database exists and that you have write privileges.
+				fi
 		else
 			echo Invalid table name. Tables cannot contain special characters or begin with symbols
 		fi
