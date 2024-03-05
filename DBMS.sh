@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-dbms_path="./dbms"
+dbms_path="dbms"
 
 if ! [ -d $dbms_path ]
 then
@@ -73,23 +73,60 @@ do
 		echo $1
 	elif [ $option -eq 2 ]
 	then
-		echo $1
+		read -p "Enter table name: " tname
+		if [[ $tname =~ ^[a-zA-Z]+[a-zA-Z0-9_]+$ ]]
+		then
+				touch "${dbms_path}/${1}.db/${tname}.tbl"
+				if [ -f "${dbms_path}/${1}.db/${tname}.tbl" ]
+				then				
+					echo table $tname created
+				else
+					echo Table creation failed. Please check that the database exits and that you have write privileges.
+				fi
+
+				touch "${dbms_path}/${1}.db/${tname}.mtd"
+				if  [ -f "${dbms_path}/${1}.db/${tname}.mtd" ]
+				then
+					echo Metadata file created.
+				else
+					echo Metadata file creation failed. Please check that the database exists and that you have write privileges.
+		else
+			echo Invalid table name. Tables cannot contain special characters or begin with symbols
+		fi
 	elif [ $option -eq 3 ]
 	then
+		read -p "Enter the name of the table you want to delete: " tname
+		
+		if [ -f "${dbms_path}/${1}.db/${tname}.tbl" ]
+		then
+			rm "${dbms_path}/${1}.db/${tname}.tbl"
+			echo table $tname deleted
+		else
+			echo The specified table $tname does not exist or has already been deleted.
+		fi
+		
+		if [ -f "${dbms_path}/${1}.db/${tname}.mtd" ]
+		then
+			rm "${dbms_path}/${1}.db/${tname}.mtd"
+			echo matching metadata file deleted
+		else
+			echo Could not find matching metadata file.
+		fi
 		echo $1
 	elif [ $option -eq 4 ]
 	then
 		echo $1
 	elif [ $option -eq 5 ]
-	then
-	
-		#################
-	    	## Records Level
-		#################
+	then		
+		read -p "Enter table name: " tname
 		
-		
-		
-		Records_level $1/$table_name
+		if [ -f "${dbms_path}/${1}.db/${tname}.tbl" ]
+		then		
+			Records_level $tname
+		else
+			echo The specified table $tname does not exist
+		fi
+
 		
 	elif [ $option -eq 6 ]
 	then
