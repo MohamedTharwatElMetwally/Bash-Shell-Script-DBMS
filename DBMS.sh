@@ -9,6 +9,7 @@ then
 fi
 
 
+function database_level {
 while true
 do
 	echo --------------------------------- 
@@ -90,6 +91,9 @@ do
 		echo not a valid option, you must select from the provided list of options, from [1-5].
 	fi
 done
+}
+
+database_level 
 
 
 
