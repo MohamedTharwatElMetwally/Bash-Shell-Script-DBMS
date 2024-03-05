@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-dbms_path="./dbms/"
+dbms_path="./dbms"
 
 if ! [ -d $dbms_path ]
 then
@@ -22,6 +22,8 @@ do
 	echo 6. Exit
 	echo ---------------------------------  
 
+	typeset -i option
+	
 	read -p "Select an Option, from [1-5]: " option
 
 	if [ $option -eq 1 ]
@@ -41,7 +43,7 @@ do
 		return
 	elif [ $option -eq 6 ]
 	then
-		exit
+		return
 	else 
 		echo not a valid option, you must select from the provided list of options, from [1-7].
 	fi
@@ -62,6 +64,8 @@ do
 	echo 7. Exit
 	echo ---------------------------------  
 
+	typeset -i option
+	
 	read -p "Select an Option, from [1-5]: " option
 
 	if [ $option -eq 1 ]
@@ -93,7 +97,7 @@ do
 		
 	elif [ $option -eq 7 ]
 	then
-		exit
+		return
 	else 
 		echo not a valid option, you must select from the provided list of options, from [1-7].
 	fi
@@ -112,6 +116,8 @@ do
 	echo 5. Exit
 	echo ---------------------------------  
 
+	typeset -i option
+	
 	read -p "Select an Option, from [1-5]: " option
 
 	if [ $option -eq 1 ]
@@ -121,9 +127,9 @@ do
 		
 		if [[ $newDB =~ ^[a-zA-Z]+[a-zA-Z0-9_]+$ ]]
 		then
-			if ! [ -d $dbms_path/$newDB ]
+			if ! [ -d $dbms_path/$newDB.db ]
 			then
-				mkdir $dbms_path/$newDB
+				mkdir $dbms_path/$newDB.db
 			    	echo the database $newDB has been created successfully.
 			else
 				echo the database $newDB is already exist !!!
@@ -139,7 +145,7 @@ do
 		
 		if [[ $currentDB =~ ^[a-zA-Z]+[a-zA-Z0-9_]+$ ]]
 		then
-			if [ -d $dbms_path/$currentDB ]
+			if [ -d $dbms_path/$currentDB.db ]
 			then
 			    	echo successfully connected to $currentDB.
 			    	
@@ -164,10 +170,10 @@ do
 		
 		if [[ $DBName =~ ^[a-zA-Z]+[a-zA-Z0-9_]+$ ]]
 		then
-			if [ -d $dbms_path/$DBName ]
+			if [ -d $dbms_path/$DBName.db ]
 			then
-				rm -r $dbms_path/$DBName
-			    	echo the database $newDB has been deleted successfully.
+				rm -r $dbms_path/$DBName.db
+			    	echo the database $DBName has been deleted successfully.
 			else
 				echo the database $DBName is not exist !!!
 			fi
@@ -179,11 +185,11 @@ do
 	elif [ $option -eq 4 ]
 	then
 	
-		ls $dbms_path
+		ls $dbms_path | grep ".db" | awk -F. '{print $1}'
 		
 	elif [ $option -eq 5 ]
 	then
-		exit
+		return
 	else 
 		echo not a valid option, you must select from the provided list of options, from [1-5].
 	fi
