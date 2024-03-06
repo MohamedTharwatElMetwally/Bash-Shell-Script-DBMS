@@ -93,3 +93,4 @@ Validations:
 -------------
 1- Columns: Make sure the column name does not already exist.
 2- Columns: Make sure the Primary key is selected by the user, and if the user has already chosen a primary key, they don't get asked again for it.
+3- Tables: Make sure the table does not already exist.

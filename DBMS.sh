@@ -73,8 +73,17 @@ do
 		echo $1
 	elif [ $option -eq 2 ]
 	then
-		# Prompting user for table name, checking if it matches the specified format
+		# Prompting user for table name
 		read -p "Enter table name: " tname
+		
+		# Checking that the table doesn't exist already
+		while [[ -f "${dbms_path}/${1}.db/${tname}.tbl" ]]
+		do
+			echo A table with this name already exists.
+			read -p "Enter table name: " tname
+		done
+		
+		# Checking if it matches the specified format
 		if [[ $tname =~ ^[a-zA-Z]+[a-zA-Z0-9_]+$ ]]
 		then
 			# Creating the table
@@ -109,7 +118,7 @@ do
 					read -p "Number of columns: " colNo
 				done
 				# Entering metadata
-				PKchosen=$false
+				PKchosen=0
 				for ((i = 1; i <= $colNo; i++))
 				do
 					colData=""
@@ -120,12 +129,12 @@ do
 						echo Invalid name format. Column name cannot contain special characters or start with a number.
 						read -p "Enter name of column ${i}: " colName
 					done
-					# Column metadata options
+					# Start populating column metadata
 					colData+=$colName
 					colData+=":"
 					
 					# check for Primary key
-					if  [ !PKchosen ]
+					if ! (( $PKchosen ))
 					then
 						read -p "Make this column the Primary Key? (y/n)" pkprmpt
 						while ! [[ $pkprmpt =~ ^[YyNn]$ ]]
@@ -135,14 +144,21 @@ do
 						done	
 						if [[ $pkprmpt =~ ^[Yy]$ ]]
 						then
+							# Tag column as Primary Key
 							echo Column $colName selected as Primary Key.
-							PKchosen=$true
+							PKchosen=1
+							echo $PKchosen
 							colData+="1"
 							colData+=":"
 						else
+							# User does not tag the column as Primary Key
 							colData+="0"
 							colData+=":"
 						fi
+					else
+						# PK already chosen. Automatically give false value to the PK flag
+						colData+="0"
+						colData+=":"
 					fi
 					# input type
 					# Nullable
@@ -151,8 +167,6 @@ do
 					echo $colData
 				done
 			fi
-		else
-			echo Invalid table name. Tables cannot contain special characters or begin with symbols
 		fi
 	elif [ $option -eq 3 ]
 	then
