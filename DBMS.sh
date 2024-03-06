@@ -73,24 +73,84 @@ do
 		echo $1
 	elif [ $option -eq 2 ]
 	then
+		# Prompting user for table name, checking if it matches the specified format
 		read -p "Enter table name: " tname
 		if [[ $tname =~ ^[a-zA-Z]+[a-zA-Z0-9_]+$ ]]
 		then
-				touch "${dbms_path}/${1}.db/${tname}.tbl"
-				if [ -f "${dbms_path}/${1}.db/${tname}.tbl" ]
-				then				
-					echo table $tname created
-				else
-					echo Table creation failed. Please check that the database exits and that you have write privileges.
-				fi
+			# Creating the table
+			touch "${dbms_path}/${1}.db/${tname}.tbl"
+			if [ -f "${dbms_path}/${1}.db/${tname}.tbl" ]
+			then				
+				echo table $tname created
+				tblCreated=$true
+			else
+				echo Table creation failed. Please check that the database exits and that you have write privileges.
+				tblCreated=$false
+			fi
 
-				touch "${dbms_path}/${1}.db/${tname}.mtd"
-				if  [ -f "${dbms_path}/${1}.db/${tname}.mtd" ]
-				then
-					echo Metadata file created.
-				else
-					echo Metadata file creation failed. Please check that the database exists and that you have write privileges.
-				fi
+			# Creating the Metadata file
+			touch "${dbms_path}/${1}.db/${tname}.mtd"
+			if  [ -f "${dbms_path}/${1}.db/${tname}.mtd" ]
+			then
+				echo Metadata file created.
+				mtdCreated=$true
+			else
+				echo Metadata file creation failed. Please check that the database exists and that you have write privileges.
+				mtdCreated=$false
+			fi
+			# Building table metadata
+			if [ $tblCreated ] -a [ $mtdCreated ]
+			then
+				# Reading number of columns
+				read -p "Number of columns: " colNo
+				while ! [[ $colNo =~ ^[0-9]+$ ]]
+				do
+					echo Invalid input. Please enter a number.
+					read -p "Number of columns: " colNo
+				done
+				# Entering metadata
+				PKchosen=$false
+				for ((i = 1; i <= $colNo; i++))
+				do
+					colData=""
+					# Column name
+					read -p "Enter name of column ${i}: " colName
+					while ! [[ $colName =~ ^[a-zA-Z]+[a-zA-Z0-9_]+$ ]]
+					do
+						echo Invalid name format. Column name cannot contain special characters or start with a number.
+						read -p "Enter name of column ${i}: " colName
+					done
+					# Column metadata options
+					colData+=$colName
+					colData+=":"
+					
+					# check for Primary key
+					if  [ !PKchosen ]
+					then
+						read -p "Make this column the Primary Key? (y/n)" pkprmpt
+						while ! [[ $pkprmpt =~ ^[YyNn]$ ]]
+						do
+							echo Invalid choice.
+							read -p "Make this column the Primary Key? (y/n)" pkprmpt
+						done	
+						if [[ $pkprmpt =~ ^[Yy]$ ]]
+						then
+							echo Column $colName selected as Primary Key.
+							PKchosen=$true
+							colData+="1"
+							colData+=":"
+						else
+							colData+="0"
+							colData+=":"
+						fi
+					fi
+					# input type
+					# Nullable
+					# Unique
+					# 
+					echo $colData
+				done
+			fi
 		else
 			echo Invalid table name. Tables cannot contain special characters or begin with symbols
 		fi
