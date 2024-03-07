@@ -154,10 +154,10 @@ do
 						then
 							echo Column $colName will be forced as as Primary Key since no other columns were selected.
 							PKchosen=1
-							colData+="1:1:1"
+							colData+="1:1:1:"
 							# colData+=":"
 						else
-							# User does not tag the column as Primary Key
+							# User does not select the column as Primary Key
 							colData+="0"
 							colData+=":"
 
@@ -171,12 +171,10 @@ do
 							if [[ $rqprmpt =~ ^[Yy]$ ]]
 							then
 								# Column  is required
-								colData+="1"
-								colData+=":"
+								colData+="1:"
 							else
 								# Column is nor required
-								colData+="0"
-								colData+=":"
+								colData+="0:"
 							fi
 
 							# Unique
@@ -189,13 +187,47 @@ do
 							if [[ $unqprmpt =~ ^[Yy]$ ]]
 							then
 								# Column  is required
-								colData+="1"
+								colData+="1:"
 							else
-								# Column is nor required
-								colData+="0"
+								# Column is not required
+								colData+="0:"
 							fi	
 						fi
-				fi
+					elif [ $i -eq $colNo ]
+					then
+						colData+="0:"
+						# Check if the column is required
+						read -p "Is this column required? (y/n) " rqprmpt
+						while ! [[ $rqprmpt =~ ^[YyNn]$ ]]
+						do
+							echo Invalid choice.
+							read -p "Is this column required? (y/n) " rqprmpt
+						done	
+						if [[ $rqprmpt =~ ^[Yy]$ ]]
+						then
+							# Column  is required
+							colData+="1:"
+						else
+							# Column is nor required
+							colData+="0:"
+						fi
+
+						# Check if the data has to be unique
+						read -p "Do values in this column have to be unique? (y/n) " unqprmpt
+						while ! [[ $unqprmpt =~ ^[YyNn]$ ]]
+						do
+							echo Invalid choice.
+							read -p "Do values in this column have to be unique? (y/n) " unqprmpt
+						done	
+						if [[ $unqprmpt =~ ^[Yy]$ ]]
+						then
+							# Column  is unique
+							colData+="1:"
+						else
+							# Column is not unique
+							colData+="0:"
+						fi	
+					fi
 					# Prompting for input type
 					read -p "Choose input type. (S = string / I = integer) (s/i) " inptype
 						while ! [[ $inptype =~ ^[SsIi]$ ]]
@@ -205,11 +237,12 @@ do
 						done	
 						if [[ $inptype =~ ^[Ss]$ ]]
 						then
-							colData+=":s"
+							colData+="s"
 						else
-							colData+=":i"
+							colData+="i"
 						fi
-					echo $colData
+					# populating metadata file with the column's metadata
+					echo $colData >> "${dbms_path}/${1}.db/${tname}.mtd"
 				done
 			fi
 		fi

@@ -94,5 +94,6 @@ Validations:
 1- Columns: Make sure the column name does not already exist.
 2- Columns: Make sure the Primary key is selected by the user, and if the user has already chosen a primary key, they don't get asked again for it.
 3- Tables: Make sure the table does not already exist.
-3- Columns: If no column was selected as the primary key, the last column will be automatically selected as the primary key.
-4- Columns: Primary key columns do not get metadata options. They are by default Required, not null, and unique.
+4- Columns: If no column was selected as the primary key, the last column will be automatically selected as the primary key.
+5- Columns: Primary key columns do not get metadata options. They are by default Required, not null, and unique.
+6- Columns: Make sure the column name doesn not already exist
