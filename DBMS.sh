@@ -136,81 +136,79 @@ do
 					# check for Primary key
 					if ! (( $PKchosen ))
 					then
-						read -p "Make this column the Primary Key? (y/n): " pkprmpt
+						read -p "Make this column the Primary Key? (y/n) " pkprmpt
 						while ! [[ $pkprmpt =~ ^[YyNn]$ ]]
 						do
 							echo Invalid choice.
-							read -p "Make this column the Primary Key? (y/n): " pkprmpt
+							read -p "Make this column the Primary Key? (y/n) " pkprmpt
 						done	
 						if [[ $pkprmpt =~ ^[Yy]$ ]]
 						then
 							# Tag column as Primary Key
-							echo Column $colName selected as Primary Key.
+							echo Column $colName selected as Primary Key. 
 							PKchosen=1
-							colData+="1"
-							colData+=":"
+							colData+="1:1:1"
+							# colData+=":"
+						# User has not selected any column to be the Primary Key. The last column will be chosen.
+						elif [ $i -eq $colNo ]
+						then
+							echo Column $colName will be forced as as Primary Key since no other columns were selected.
+							PKchosen=1
+							colData+="1:1:1"
+							# colData+=":"
 						else
 							# User does not tag the column as Primary Key
 							colData+="0"
 							colData+=":"
+
+							# Check if the column is required
+							read -p "Is this column required? (y/n) " rqprmpt
+							while ! [[ $rqprmpt =~ ^[YyNn]$ ]]
+							do
+								echo Invalid choice.
+								read -p "Is this column required? (y/n) " rqprmpt
+							done	
+							if [[ $rqprmpt =~ ^[Yy]$ ]]
+							then
+								# Column  is required
+								colData+="1"
+								colData+=":"
+							else
+								# Column is nor required
+								colData+="0"
+								colData+=":"
+							fi
+
+							# Unique
+							read -p "Do values in this column have to be unique? (y/n) " unqprmpt
+							while ! [[ $unqprmpt =~ ^[YyNn]$ ]]
+							do
+								echo Invalid choice.
+								read -p "Do values in this column have to be unique? (y/n) " unqprmpt
+							done	
+							if [[ $unqprmpt =~ ^[Yy]$ ]]
+							then
+								# Column  is required
+								colData+="1"
+							else
+								# Column is nor required
+								colData+="0"
+							fi	
 						fi
-					else
-						# PK already chosen. Automatically give false value to the PK flag
-						colData+="0"
-						colData+=":"
-					fi
+				fi
 					# Prompting for input type
-					read -p "Choose input type. (S = string / I = integer) (s/i): " inptype
+					read -p "Choose input type. (S = string / I = integer) (s/i) " inptype
 						while ! [[ $inptype =~ ^[SsIi]$ ]]
 						do
 							echo Invalid choice.
-							read -p "Choose input type. (S = string / I = integer) (s/i): " inptype
+							read -p "Choose input type. (S = string / I = integer) (s/i) " inptype
 						done	
 						if [[ $inptype =~ ^[Ss]$ ]]
 						then
-							colData+="s"
-							colData+=":"
+							colData+=":s"
 						else
-							colData+="i"
-							colData+=":"
+							colData+=":i"
 						fi
-
-					# Check if the column is required
-					read -p "Is this column required? (y/n): " rqprmpt
-					while ! [[ $rqprmpt =~ ^[YyNn]$ ]]
-					do
-						echo Invalid choice.
-						read -p "Is this column required? (y/n): " rqprmpt
-					done	
-					if [[ $rqprmpt =~ ^[Yy]$ ]]
-					then
-						# Column  is required
-						colData+="1"
-						colData+=":"
-					else
-						# Column is nor required
-						colData+="0"
-						colData+=":"
-					fi
-
-					# Check if the column can be null
-					read -p "Does this column accept null values? (y/n)" nullprmpt
-					while ! [[ $nullprmpt =~ ^[YyNn]$ ]]
-					do
-						echo Invalid choice.
-						read -p "Does this column accept null values? (y/n)" nullprmpt
-					done	
-					if [[ $nullprmpt =~ ^[Yy]$ ]]
-					then
-						# Column  is required
-						colData+="1"
-						colData+=":"
-					else
-						# Column is nor required
-						colData+="0"
-						colData+=":"
-					fi
-					# Unique
 					echo $colData
 				done
 			fi
