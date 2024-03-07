@@ -136,18 +136,17 @@ do
 					# check for Primary key
 					if ! (( $PKchosen ))
 					then
-						read -p "Make this column the Primary Key? (y/n)" pkprmpt
+						read -p "Make this column the Primary Key? (y/n): " pkprmpt
 						while ! [[ $pkprmpt =~ ^[YyNn]$ ]]
 						do
 							echo Invalid choice.
-							read -p "Make this column the Primary Key? (y/n)" pkprmpt
+							read -p "Make this column the Primary Key? (y/n): " pkprmpt
 						done	
 						if [[ $pkprmpt =~ ^[Yy]$ ]]
 						then
 							# Tag column as Primary Key
 							echo Column $colName selected as Primary Key.
 							PKchosen=1
-							echo $PKchosen
 							colData+="1"
 							colData+=":"
 						else
@@ -160,10 +159,58 @@ do
 						colData+="0"
 						colData+=":"
 					fi
-					# input type
-					# Nullable
+					# Prompting for input type
+					read -p "Choose input type. (S = string / I = integer) (s/i): " inptype
+						while ! [[ $inptype =~ ^[SsIi]$ ]]
+						do
+							echo Invalid choice.
+							read -p "Choose input type. (S = string / I = integer) (s/i): " inptype
+						done	
+						if [[ $inptype =~ ^[Ss]$ ]]
+						then
+							colData+="s"
+							colData+=":"
+						else
+							colData+="i"
+							colData+=":"
+						fi
+
+					# Check if the column is required
+					read -p "Is this column required? (y/n): " rqprmpt
+					while ! [[ $rqprmpt =~ ^[YyNn]$ ]]
+					do
+						echo Invalid choice.
+						read -p "Is this column required? (y/n): " rqprmpt
+					done	
+					if [[ $rqprmpt =~ ^[Yy]$ ]]
+					then
+						# Column  is required
+						colData+="1"
+						colData+=":"
+					else
+						# Column is nor required
+						colData+="0"
+						colData+=":"
+					fi
+
+					# Check if the column can be null
+					read -p "Does this column accept null values? (y/n)" nullprmpt
+					while ! [[ $nullprmpt =~ ^[YyNn]$ ]]
+					do
+						echo Invalid choice.
+						read -p "Does this column accept null values? (y/n)" nullprmpt
+					done	
+					if [[ $nullprmpt =~ ^[Yy]$ ]]
+					then
+						# Column  is required
+						colData+="1"
+						colData+=":"
+					else
+						# Column is nor required
+						colData+="0"
+						colData+=":"
+					fi
 					# Unique
-					# 
 					echo $colData
 				done
 			fi
