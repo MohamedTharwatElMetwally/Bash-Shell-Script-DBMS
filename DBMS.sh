@@ -312,7 +312,13 @@ do
 		then
 			if [ -f "${dbms_path}/${1}.db/${tname}.tbl" -a -f "${dbms_path}/${1}.db/${tname}.mtd" ]
 			then		
-				cat "${dbms_path}/${1}.db/${tname}.tbl"
+				awk -F':' '{
+					for (i=1; i<=NF; i++) 
+					{
+						printf "%-20s", $i  
+					}
+					printf "\n"
+				}' "${dbms_path}/${1}.db/${tname}.tbl"
 			else
 				echo The specified table $tname does not exist.
 			fi
@@ -465,6 +471,7 @@ do
 		echo not a valid option, you must select from the provided list of options, from [1-5].
 	fi
 done
+
 
 
 
