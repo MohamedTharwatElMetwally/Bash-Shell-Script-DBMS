@@ -33,7 +33,7 @@ do
 	echo "1. Select * From $2"
 	echo 2. Select by Primary Key
 	echo 3. Select Specific Column
-	echo 4. Select with a Customized Query
+	echo 4. Select by Field Value
 	echo 5. Back
 	echo ---------------------------------  
 
@@ -108,11 +108,97 @@ do
 
 
 
-	# elif [ $option -eq 3 ]
-	# then
+	elif [ $option -eq 3 ]
+	then
 
-	# elif [ $option -eq 4 ]
-	# then
+		printf "All Columns: "
+
+		awk -F':' '{ 
+			if (NR == 1) 
+			{ 
+				for (i=1; i<=NF; i++) 
+				{
+					printf "%-5s", $i  
+				}
+				printf "\n"
+				exit; 
+			} 
+		}' "${dbms_path}/${1}.db/${2}.tbl"
+		
+		read -p "Enter Column Name: " colName
+
+		if [[ $colName =~ ^[a-zA-Z]+[a-zA-Z0-9_]+$ ]]
+		then
+				awk -F':' -v colName="$colName" -v colIndex="0" '{
+					if (NR == 1) 
+					{ 
+						for (i=1; i<=NF; i++) 
+						{
+							if ($i == colName) 
+							{
+								print $i
+								colIndex=i;
+								break;
+							}
+						}
+						if(colIndex == 0)
+						{
+							print "this column is not exist."
+							exit;
+						}
+					}  
+					else
+					{
+						print $colIndex
+					}
+				}' "${dbms_path}/${1}.db/${2}.tbl"
+
+		else
+			echo Invalid name format. Column name cannot contain special characters or start with a number.
+		fi
+
+	elif [ $option -eq 4 ]
+	then
+
+		awk -F':' '{ 
+			if (NR == 1) 
+			{ 
+				for (i=1; i<=NF; i++) 
+				{
+					print i": "$i
+				}
+				exit; 
+			} 
+		}' "${dbms_path}/${1}.db/${2}.tbl"
+	  
+		columns=$(
+			awk -F':' '{ 
+				if (NR == 1) 
+				{ 
+					print NF
+					exit; 
+				} 
+			}' "${dbms_path}/${1}.db/${2}.tbl"
+		)
+
+		read -p "Enter column number. choose from [1-$columns]: " colNum
+
+		if [ $colNum -ge 1 -a $colNum -le $columns ]
+		then
+			read -p "Value: " value
+			awk -F':' -v colNum="$colNum" -v value="$value"  '{ 
+				if (NR == 1 || NR != 1 && $colNum == value ) 
+				{ 
+					for (i=1; i<=NF; i++) 
+					{
+						printf "%-20s", $i  
+					}
+					printf "\n"
+				} 
+			}' "${dbms_path}/${1}.db/${2}.tbl"
+		else
+			echo "not a valid column number, you must select from the provided list of columns, from [1-$columns]".
+		fi
 
 	elif [ $option -eq 5 ]
 	then
