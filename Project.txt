@@ -59,13 +59,12 @@ for each table:
 
 1- metadata
 
-field_name:datatype:pk:required
-field_name:datatype:pk:required
-field_name:datatype:pk:required
+field_name:pk:required:unique:datatype
+field_name:pk:required:unique:datatype
+field_name:pk:required:unique:datatype
 
-datatype ==> string or int
-pk ==> 0 or 1
-required ==> 0 or 1
+datatype ==> s or i
+pk / unique / required ==> 0 or 1
 
 
 2- data
@@ -81,9 +80,19 @@ Naming Rules:
 -------------
 database ===> .db
 tables ===> .tbl
-metadata ===> .meta
+metadata ===> .mtd
 
 
 Regex:
 ------
 ^[a-zA-Z]+[a-zA-Z0-9_]+$
+
+
+Validations:
+-------------
+1- Columns: Make sure the column name does not already exist.
+2- Columns: Make sure the Primary key is selected by the user, and if the user has already chosen a primary key, they don't get asked again for it.
+3- Tables: Make sure the table does not already exist.
+4- Columns: If no column was selected as the primary key, the last column will be automatically selected as the primary key.
+5- Columns: Primary key columns do not get metadata options. They are by default Required, not null, and unique.
+6- Columns: Make sure the column name doesn not already exist
