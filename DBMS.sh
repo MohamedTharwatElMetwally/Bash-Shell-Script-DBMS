@@ -40,10 +40,10 @@ do
 		echo $1
 	elif [ $option -eq 5 ]
 	then
-		return
+		return 0
 	elif [ $option -eq 6 ]
 	then
-		return
+		return 1
 	else 
 		echo not a valid option, you must select from the provided list of options, from [1-6].
 	fi
@@ -342,6 +342,11 @@ do
 				#################
 
 				Records_level $1 $tname
+				status=$?
+				if [ $status == 1 ]
+				then
+					return 1
+				fi
 				
 			else
 				echo The specified table $tname does not exist.
@@ -353,11 +358,11 @@ do
 
 	elif [ $option -eq 6 ]
 	then
-		return
+		return 0
 		
 	elif [ $option -eq 7 ]
 	then
-		return
+		return 1
 
 	else 
 		echo not a valid option, you must select from the provided list of options, from [1-7].
@@ -425,6 +430,12 @@ do
 			    	#################
 			    	
 			    	Tables_level $currentDB
+					status=$?
+					if [ $status == 1 ]
+					then
+						return
+					fi
+						
 
 			else
 				echo the database $currentDB is not exist !!!
