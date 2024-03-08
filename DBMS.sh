@@ -28,9 +28,26 @@ do
 
 	if [ $option -eq 1 ]
 	then
-		echo $1
+		# Preparing column list
+		IFS=":" read -ra columns <<< `head -n 1 "dbms/${1}.db/${2}.tbl"`
+		insertStr=""
+		for i in columns
+		do
+		#TODO: 
+		# Check for PK, make sure PK contraints are followed
+		
+		# Check for required, check also passes for PK enabled columns
+
+		# Check for null, check also passes for PK enabled columns
+
+		#For each column, check data type.
+		done
+	
 	elif [ $option -eq 2 ]
 	then
+		#TODO:
+		# Check that the record exists
+		# Delete the record
 		echo $1
 	elif [ $option -eq 3 ]
 	then
@@ -107,8 +124,8 @@ do
 		# Checking if it matches the specified format
 		if [[ $tname =~ ^[a-zA-Z]+[a-zA-Z0-9_]+$ ]]
 		then 
+			
 			# First, check if there is only one file due to any error, consider it as garbage, and delete it.
-
 			if [ -f "${dbms_path}/${1}.db/${tname}.tbl" ]
 			then 
 				rm -f "${dbms_path}/${1}.db/${tname}.tbl"
@@ -149,7 +166,7 @@ do
 
 				# Reading number of columns
 				read -p "Number of columns: " colNo
-				while ! [[ $colNo =~ ^[0-9]+$ ]]; 
+				while ! [[ $colNo =~ ^[0-9]+$ ]]
 				do
 					echo Invalid input. Please enter a number.
 					read -p "Number of columns: " colNo
@@ -159,7 +176,7 @@ do
 				PKchosen=0
 				table_columns=""
 
-				for ((i = 1; i <= $colNo; i++)); 
+				for ((i = 1; i <= $colNo; i++))
 				do
 					colData=""
 					isPK=0
@@ -208,13 +225,13 @@ do
 
 						read -p "Make this column the Primary Key? (y/n) " pkprmpt
 
-						while ! [[ $pkprmpt =~ ^[YyNn]$ ]]; 
+						while ! [[ $pkprmpt =~ ^[YyNn]$ ]]
 						do
 							echo Invalid choice.
 							read -p "Make this column the Primary Key? (y/n) " pkprmpt
 						done
 
-						if [[ $pkprmpt =~ ^[Yy]$ ]]; 
+						if [[ $pkprmpt =~ ^[Yy]$ ]]
 						then
 							# Tag column as Primary Key
 							echo Column $colName selected as Primary Key.
@@ -223,7 +240,7 @@ do
 							colData+="1:1:1"
 
 						# User has not selected any column to be the Primary Key. The last column will be chosen.
-						elif [ $i -eq $colNo ]; 
+						elif [ $i -eq $colNo ]
 						then
 							echo Column $colName will be forced as as Primary Key since no other columns were selected.
 							PKchosen=1
@@ -247,7 +264,7 @@ do
 
 						# Check if the column is required
 						read -p "Is this column required? (y/n) " rqprmpt
-						while ! [[ $rqprmpt =~ ^[YyNn]$ ]]; 
+						while ! [[ $rqprmpt =~ ^[YyNn]$ ]]
 						do
 							echo Invalid choice.
 							read -p "Is this column required? (y/n) " rqprmpt
@@ -266,13 +283,13 @@ do
 
 						# Unique
 						read -p "Do values in this column have to be unique? (y/n) " unqprmpt
-						while ! [[ $unqprmpt =~ ^[YyNn]$ ]]; 
+						while ! [[ $unqprmpt =~ ^[YyNn]$ ]]
 						do
 							echo Invalid choice.
 							read -p "Do values in this column have to be unique? (y/n) " unqprmpt
 						done
 
-						if [[ $unqprmpt =~ ^[Yy]$ ]]; 
+						if [[ $unqprmpt =~ ^[Yy]$ ]]
 						then
 							# Column  is unique
 							colData+="1"
