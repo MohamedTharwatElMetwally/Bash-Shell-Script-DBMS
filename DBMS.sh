@@ -10,6 +10,122 @@ fi
 
 
 
+echo -e "\e[32;1m"  # switch color to green 
+cat << "EOF"
+
+  ______   ______   ____    ____   ______   
+ |_   _ `.|_   _ \ |_   \  /   _|.' ____ \  
+   | | `. \ | |_) |  |   \/   |  | (___ \_| 
+   | |  | | |  __'.  | |\  /| |   _.____`.  
+  _| |_.' /_| |__) |_| |_\/_| |_ | \____) | 
+ |______.'|_______/|_____||_____| \______.' 
+
+EOF
+echo -e "\e[0m"  # reset color
+
+
+
+function Select {
+
+while true
+do
+	echo --------------------------------- 
+	echo "1. Select * From $2"
+	echo 2. Select by Primary Key
+	echo 3. Select Specific Column
+	echo 4. Select with a Customized Query
+	echo 5. Back
+	echo ---------------------------------  
+
+	typeset -i option
+	
+	read -p "Select an Option, from [1-4]: " option
+
+	if [ $option -eq 1 ]
+	then
+		awk -F':' '{
+			for (i=1; i<=NF; i++) 
+			{
+				printf "%-20s", $i  
+			}
+			printf "\n"
+		}' "${dbms_path}/${1}.db/${2}.tbl"
+
+	elif [ $option -eq 2 ]
+	then
+
+		pk_column_name=""
+		pk_column_datatype=""
+		pk_column_index=""
+
+		output=$(
+			awk -F':' '{ 
+				if ($2 == 1) 
+				{ 
+					print $1,$5,NR
+					exit; 
+				} 
+			}' "${dbms_path}/${1}.db/${2}.mtd"
+		)
+
+		read pk_column_name pk_column_datatype pk_column_index <<< "$output"
+		
+		read -p "Enter Primary Key: " pk
+
+		if [ $pk_column_datatype == 'i' ] && [[ $pk =~ ^[0-9]+$ ]] || [ $pk_column_datatype == 's' ] && [[ $pk =~ ^[a-zA-Z0-9_]+$ ]] 
+		then
+			awk -F':' -v pk_name="$pk_column_name" -v pk_type="$pk_column_datatype" -v pk_index="$pk_column_index" -v pk="$pk" '{
+				if (NR > 1) 
+				{ 
+					if ($pk_index == pk)
+					{
+						for (i=1; i<=NF; i++) 
+						{
+							printf "%-20s", $i  
+						}
+						printf "\n"
+						exit;
+					}
+				}  
+				else
+				{
+					for (i=1; i<=NF; i++) 
+					{
+						printf "%-20s", $i  
+					}
+					printf "\n"
+				}
+			}' "${dbms_path}/${1}.db/${2}.tbl"
+
+		else
+			if [ $pk_column_datatype == 'i' ]
+			then
+				echo "invalid value for integer primary key. You must enter numbers only." 
+			else
+				echo "invalid value for string primary key. The allowed characters are [ A-Z | a-z | 0-9 | _ ]." 
+			fi
+		fi
+
+
+
+	# elif [ $option -eq 3 ]
+	# then
+
+	# elif [ $option -eq 4 ]
+	# then
+
+	elif [ $option -eq 5 ]
+	then
+		return
+
+	else
+		echo not a valid option, you must select from the provided list of options, from [1-4].
+	fi
+done
+
+}
+
+
 function Records_level {
 while true
 do
@@ -28,22 +144,28 @@ do
 
 	if [ $option -eq 1 ]
 	then
-		echo $1
+		echo $1 $2
+
 	elif [ $option -eq 2 ]
 	then
-		echo $1
+		echo $1 $2
+
 	elif [ $option -eq 3 ]
 	then
-		echo $1
+		echo $1 $2
+
 	elif [ $option -eq 4 ]
 	then
-		echo $1
+		Select $1 $2
+
 	elif [ $option -eq 5 ]
 	then
 		return 0
+
 	elif [ $option -eq 6 ]
 	then
 		return 1
+
 	else 
 		echo not a valid option, you must select from the provided list of options, from [1-6].
 	fi
@@ -430,6 +552,7 @@ do
 			    	#################
 			    	
 			    	Tables_level $currentDB
+
 					status=$?
 					if [ $status == 1 ]
 					then
