@@ -59,13 +59,12 @@ for each table:
 
 1- metadata
 
-field_name:datatype:pk:required
-field_name:datatype:pk:required
-field_name:datatype:pk:required
+field_name:pk:required:unique:datatype
+field_name:pk:required:unique:datatype
+field_name:pk:required:unique:datatype
 
-datatype ==> string or int
-pk ==> 0 or 1
-required ==> 0 or 1
+datatype ==> s or i
+pk / unique / required ==> 0 or 1
 
 
 2- data
@@ -81,7 +80,7 @@ Naming Rules:
 -------------
 database ===> .db
 tables ===> .tbl
-metadata ===> .meta
+metadata ===> .mtd
 
 
 Regex:
