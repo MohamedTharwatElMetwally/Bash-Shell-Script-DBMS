@@ -24,6 +24,10 @@ EOF
 echo -e "\e[0m"  # reset color
 
 
+namingRules="^[a-zA-Z]+[a-zA-Z0-9_]+$"
+intValuePattern="^[0-9]+$"
+stringValuePattern="^[a-zA-Z0-9_]+$"
+
 
 function Select {
 
@@ -212,6 +216,228 @@ done
 }
 
 
+function Update {
+
+while true
+do
+	echo --------------------------------- 
+	echo Condition Columns
+	echo -----------------
+
+	awk -F':' '{ 
+		if (NR == 1) 
+		{ 
+			for (i=1; i<=NF; i++) 
+			{
+				print i": "$i
+			}
+			exit; 
+		} 
+	}' "${dbms_path}/${1}.db/${2}.tbl"
+
+	columns=$(
+		awk -F':' '{ 
+			if (NR == 1) 
+			{ 
+				print NF
+				exit; 
+			} 
+		}' "${dbms_path}/${1}.db/${2}.tbl"
+	)
+
+	options=$((columns + 1))
+	echo "$result. Back"
+	echo --------------------------------- 
+
+	read -p "Enter the conditional column number. choose from [1-$options]: " conColNum
+
+	if [ $conColNum -ge 1 -a $conColNum -le $columns ]
+	then
+		read -p "Condition Value: " conValue
+		output=$(
+			awk -F':' -v colNum="$conColNum" -v value="$conValue" -v check="0" '
+				{
+					if (NR != 1 && $colNum == value) {
+						check += 1
+					}
+				} 
+				END {
+					print check
+				}
+			' "${dbms_path}/${1}.db/${2}.tbl"
+		)
+
+
+		if [ $output != 0 ]
+		then
+			echo there are $output records match this condition.
+			
+			################ Updating ################
+
+			Update_Menu2 $1 $2 $conColNum $conValue
+
+			##########################################
+
+		else
+			echo there are no records match this condition.
+		fi
+
+	elif [ $conColNum -eq $options ]
+	then
+		break
+
+	else
+		echo "not a valid column number, you must select from the provided list of columns, from [1-$columns]".
+	fi
+
+done
+
+}
+
+function Update_Menu2  {
+
+while true
+do
+	echo --------------------------------- 
+	echo Choose a Column to update
+	echo -------------------------
+
+	awk -F':' '{ 
+		if (NR == 1) 
+		{ 
+			for (i=1; i<=NF; i++) 
+			{
+				print i": "$i
+			}
+			exit; 
+		} 
+	}' "${dbms_path}/${1}.db/${2}.tbl"
+
+	columns=$(
+		awk -F':' '{ 
+			if (NR == 1) 
+			{ 
+				print NF
+				exit; 
+			} 
+		}' "${dbms_path}/${1}.db/${2}.tbl"
+	)
+
+	options=$((columns + 1))
+	echo "$result. Back"
+	echo ---------------------------------
+
+	read -p "Enter the number of column you want to update. choose from [1-$options]: " colNum
+
+	if [ $colNum -ge 1 -a $colNum -le $columns ]
+	then
+
+		# read the metadata values: colName:PK:required:unique:datatype
+
+		pk=""
+		required=""
+		unique=""
+		type=""
+
+		output=$(
+			awk -F':' -v conColNum="$colNum" '{ 
+				if (NR == conColNum) 
+				{ 
+					print $2,$3,$4,$5
+					exit; 
+				} 
+			}' "${dbms_path}/${1}.db/${2}.mtd"
+		)
+
+		read pk required unique type <<< "$output"
+
+		read -p "New Value: " newValue
+
+		# required or not
+		if [[ "$required" == "1" && "$newValue" == "" ]]
+		then
+			echo "This Field is required. Empty values are not allowed."
+		else
+			# check datatype
+			if [[ $newValue =~ $intValuePattern && $type == 'i' ]] || [[ $newValue =~ $stringValuePattern && $type == 's' ]]
+			then
+
+				# check uniqueness
+				check=$(
+					awk -F':' -v colNum="$colNum" -v value="$newValue" -v check="0" '
+						{
+							if (NR != 1 && $colNum == value) 
+							{
+								check = 1
+								print check
+								exit
+							}
+						} 
+						END {
+							print check
+						}
+					' "${dbms_path}/${1}.db/${2}.tbl"
+				)
+                
+				if [[ $unique == 0 || ($unique == 1 && $check == 0) ]] # 3 cases: unique=1 and check=0 | unique=0 and check=1 | unique=0 and check=0
+				then
+					
+					#########  All cases are satisfied, so update the required column with the new value.  #########
+
+					touch "${dbms_path}/${1}.db/tmp.tbl" 
+
+					awk -F':' -v colNum="$colNum" -v value="$newValue" -v conColNum="$3" -v conValue="$4" '
+						{
+							if (NR != 1 && $conColNum == conValue) {
+								$colNum = value # update
+								printf "%s", $1
+								for (i = 2; i <= NF; i++) {
+									printf ":%s", $i
+								}
+								printf "\n"
+							}
+							else
+							{
+								print $0
+							}
+						} 
+					' "${dbms_path}/${1}.db/${2}.tbl" > "${dbms_path}/${1}.db/tmp.tbl" 
+					
+					cp "${dbms_path}/${1}.db/tmp.tbl" "${dbms_path}/${1}.db/${2}.tbl" 
+					rm -f "${dbms_path}/${1}.db/tmp.tbl" 
+                    
+					echo Successfully update records.
+
+					###################################################################
+
+				else # one case only: unique=1 and check=1
+					echo "The entered value already exists, and this field must be unique."
+				fi
+
+			else
+				if [ $type == 'i' ]
+				then 
+					echo "Invalid datatype. You must enter integer values."
+				else
+					echo "Invalid datatype. You must enter string values."
+				fi
+			fi
+		fi
+
+		
+
+	elif [ $colNum -eq $options ]
+	then
+		break
+
+	else
+		echo "not a valid column number, you must select from the provided list of columns, from [1-$columns]".
+	fi
+
+done
+
+}
+
 function Records_level {
 while true
 do
@@ -238,7 +464,7 @@ do
 
 	elif [ $option -eq 3 ]
 	then
-		echo $1 $2
+		Update $1 $2
 
 	elif [ $option -eq 4 ]
 	then
