@@ -36,14 +36,14 @@ do
 	echo --------------------------------- 
 	echo "1. Select * From $2"
 	echo 2. Select by Primary Key
-	echo 3. Select Specific Column
-	echo 4. Select by Field Value
+	echo 3. Select Specific column
+	echo 4. Select by Field value
 	echo 5. Back
 	echo ---------------------------------  
 
 	typeset -i option
 	
-	read -p "Select an Option, from [1-4]: " option
+	read -p "Select an Option [1-4]: " option
 
 	if [ $option -eq 1 ]
 	then
@@ -147,7 +147,7 @@ do
 						}
 						if(colIndex == 0)
 						{
-							print "this column is not exist."
+							print "Column does not exist."
 							exit;
 						}
 					}  
@@ -185,7 +185,7 @@ do
 			}' "${dbms_path}/${1}.db/${2}.tbl"
 		)
 
-		read -p "Enter column number. choose from [1-$columns]: " colNum
+		read -p "Enter column number. [1-$columns]: " colNum
 
 		if [ $colNum -ge 1 -a $colNum -le $columns ]
 		then
@@ -201,7 +201,7 @@ do
 				} 
 			}' "${dbms_path}/${1}.db/${2}.tbl"
 		else
-			echo "not a valid column number, you must select from the provided list of columns, from [1-$columns]".
+			echo "Invalid input. Please select [1-$columns]".
 		fi
 
 	elif [ $option -eq 5 ]
@@ -209,7 +209,7 @@ do
 		return
 
 	else
-		echo not a valid option, you must select from the provided list of options, from [1-4].
+		echo Invalid input. Please select [1-4].
 	fi
 done
 
@@ -249,11 +249,11 @@ do
 	echo "$options: Back"
 	echo --------------------------------- 
 
-	read -p "Enter the conditional column number. choose from [1-$options]: " conColNum
+	read -p "Enter  column number. [1-$options]: " conColNum
 
 	if [ $conColNum -ge 1 -a $conColNum -le $columns ]
 	then
-		read -p "Condition Value: " conValue
+		read -p "Condition value: " conValue
 		output=$(
 			awk -F':' -v colNum="$conColNum" -v value="$conValue" -v check="0" '
 				{
@@ -270,7 +270,7 @@ do
 
 		if [ $output != 0 ]
 		then
-			echo there are $output records match this condition.
+			echo there are $output records that match this condition.
 			
 			################ Updating ################
 
@@ -279,7 +279,7 @@ do
 			##########################################
 
 		else
-			echo there are no records match this condition.
+			echo there are no records that match this condition.
 		fi
 
 	elif [ $conColNum -eq $options ]
@@ -287,7 +287,7 @@ do
 		break
 
 	else
-		echo "not a valid column number, you must select from the provided list of columns, from [1-$columns]".
+		echo "Invalid input. Please select [1-$columns]".
 	fi
 
 done
@@ -300,7 +300,7 @@ while true
 do
 	echo --------------------------------- 
 	echo Choose a Column to update
-	echo -------------------------
+	echo ---------------------------------
 
 	awk -F':' '{ 
 		if (NR == 1) 
@@ -327,7 +327,7 @@ do
 	echo "$options: Back"
 	echo ---------------------------------
 
-	read -p "Enter the number of column you want to update. choose from [1-$options]: " colNum
+	read -p "Enter the number of columns to update. [1-$options]: " colNum
 
 	if [ $colNum -ge 1 -a $colNum -le $columns ]
 	then
@@ -353,16 +353,16 @@ do
 
 		read -p "New Value: " newValue
 
-		# required or not
+		# Required or not
 		if [[ "$required" == "1" && "$newValue" == "" ]]
 		then
 			echo "This Field is required. Empty values are not allowed."
 		else
-			# check datatype
+			# Check datatype
 			if [[ $newValue =~ $intValuePattern && $type == 'i' ]] || [[ $newValue =~ $stringValuePattern && $type == 's' ]]
 			then
 
-				# check uniqueness
+				# Check uniqueness
 				check=$(
 					awk -F':' -v colNum="$colNum" -v value="$newValue" -v check="0" '
 						{
@@ -382,7 +382,7 @@ do
 				if [[ $unique == 0 || ($unique == 1 && $check == 0) ]] # 3 cases: unique=1 and check=0 | unique=0 and check=1 | unique=0 and check=0
 				then
 					
-					#########  All cases are satisfied, so update the required column with the new value.  #########
+					# All checks passed. Proceed to update columns.
 
 					touch "${dbms_path}/${1}.db/tmp.tbl" 
 
@@ -406,9 +406,7 @@ do
 					cp "${dbms_path}/${1}.db/tmp.tbl" "${dbms_path}/${1}.db/${2}.tbl" 
 					rm -f "${dbms_path}/${1}.db/tmp.tbl" 
                     
-					echo Successfully update records.
-
-					###################################################################
+					echo Successfully updated records.
 
 				else # one case only: unique=1 and check=1
 					echo "The entered value already exists, and this field must be unique."
@@ -431,7 +429,7 @@ do
 		break
 
 	else
-		echo "not a valid column number, you must select from the provided list of columns, from [1-$columns]".
+		echo "Invalid input. Please select [1-$columns]".
 	fi
 
 done
@@ -499,7 +497,7 @@ do
 
 	typeset -i option
 	
-	read -p "Select an Option, from [1-6]: " option
+	read -p "Select an Option [1-6]: " option
 
 	if [ $option -eq 1 ]
 	then
@@ -514,7 +512,7 @@ do
 		# Prompt user for data input.
 		if ((${mtdata[0]}))
 		then
-			echo This column is the primary key.
+			echo NOTE: This column is the primary key.
 		fi
 		declare -i passedChecks=0
 		checks=(0 0 0)
@@ -528,20 +526,20 @@ do
 				while [ -z ${entry} ]
 				do 
 					echo This column is required.
-					read -p "Enter the data for column ${i}: " entry
+					read -p "Enter data for column ${i}: " entry
 				done
 				checks[0]=1
 			else
 				checks[0]=1
 			fi
 
-			# Check for unique, check also passes for PK enabled columns
+			# Check for uniqueness, check also passes for PK enabled columns
 			if ((${mtdata[0]})) ||  ((${mtdata[2]}))
 			then
 				existingData=`tail -n +2 dbms/${1}.db/${2}.tbl | cut -d: -f${colIndex}`
 				isunique=$(passUniqChk $entry ${existingData[@]})
 
-				# Perform unique check
+				# Perform uniqueness check
 				while ! (($isunique))
 				do 
 					echo This value already exists. Data in this column has to be unique.
@@ -582,7 +580,7 @@ do
 		colIndex+=1
 		done
 	
-	# All checks have been passed. Appending the data 2 the table, followed by a new line.
+	# All checks have been passed. Appending the data to the table, followed by a new line.
 	echo $insertStr >> dbms/${1}.db/${2}.tbl
 
 	elif [ $option -eq 2 ]
@@ -622,10 +620,10 @@ do
 					if ((${mtdata[1]}))
 					then
 
-						# Tell the user which column is the primary key
+						# Tell the user which column is the primary key.
 						echo column $i is the Primary Key
 						
-						# Prompt for PK value
+						# Prompt for PK value.
 						read -p "Enter the Primary key for the row you want to delete: " query
 
 						# Check input data type against PK column data type.
@@ -633,18 +631,18 @@ do
 						then
 							while ! [[ $query =~ ^[a-zA-Z_\-]+$ ]]
 							do
-								echo Invalid input format. This column accepts alphabetic input only.
+								echo Invalid input format. This column accepts alphabetic values only.
 								read -p "Enter the Primary key for the row you want to delete: " query
 							done
 						else
 							while ! [[ $query =~ ^[0-9]+$ ]]
 							do
-								echo Invalid input format. This column accepts numeric input only.
+								echo Invalid input format. This column accepts numeric values only.
 								read -p "Enter the Primary key for the row you want to delete: " query
 							done
 						fi
 						
-						# Check if the PK exists, reusing the unique check function
+						# Check if the PK exists, reusing the unique check function.
 						existingData=`tail -n +2 dbms/${1}.db/${2}.tbl | cut -d: -f${colIndex}`
 						doesntExist=$(passUniqChk $query ${existingData[@]})
 						while (($doesntExist))
@@ -664,9 +662,11 @@ do
 			# Delete by field value.
 			elif [ $option -eq 3 ]
 			then
-				# Prompt for value to match
+				# Display table for visual aid.
+
+				# Prompt for value to match.
 				read -p "Enter the value(s) you want to match for deletion:  " query
-				# delete lines where the query is found
+				# delete lines where the query is found.
 				awk "NR==1 || !/${query}/" dbms/${1}.db/${2}.tbl > temp && mv temp dbms/${1}.db/${2}.tbl
 			elif [ $option -eq 4 ]
 			then
@@ -691,7 +691,7 @@ do
 		return 1
 
 	else 
-		echo not a valid option, you must select from the provided list of options, from [1-6].
+		echo Invalid input. Please select [1-6].
 	fi
 done
 }
@@ -703,9 +703,9 @@ do
 	echo --------------------------------- 
 	echo 1. List all Tables
 	echo 2. Create new table  
-	echo 3. Delete an Existing Table
-	echo 4. Show content of an Existing Table
-	echo 5. Open an Existing Table 
+	echo 3. Delete an existing table
+	echo 4. Show content of an existing table
+	echo 5. Open an existing table 
 	echo 6. Disconnect
 	echo 7. Exit
 	echo ---------------------------------  
@@ -726,17 +726,17 @@ do
 
 	elif [ $option -eq 2 ]
 	then
-		# Prompting user for table name
+		# Prompting user for table name.
 		read -p "Enter table name: " tname
 		
-		# Checking that the table doesn't exist already
+		# Checking that the table doesn't exist already.
 		while [ -f "${dbms_path}/${1}.db/${tname}.tbl" -a -f "${dbms_path}/${1}.db/${tname}.mtd" ]
 		do
 			echo A table with this name already exists.
 			read -p "Enter table name: " tname
 		done
 		
-		# Checking if it matches the specified format
+		# Checking if it matches the specified format.
 		if [[ $tname =~ ^[a-zA-Z]+[a-zA-Z0-9_]+$ ]]
 		then 
 			
@@ -753,7 +753,7 @@ do
 
 			# Then, create the table data and metadata files.
 			
-			# Creating the table
+			# Creating the table.
 			touch "${dbms_path}/${1}.db/${tname}.tbl"
 			if [ -f "${dbms_path}/${1}.db/${tname}.tbl" ]
 			then				
@@ -764,7 +764,7 @@ do
 				tblCreated=$false
 			fi
 
-			# Creating the Metadata file
+			# Creating the Metadata file.
 			touch "${dbms_path}/${1}.db/${tname}.mtd"
 			if  [ -f "${dbms_path}/${1}.db/${tname}.mtd" ]
 			then
@@ -775,11 +775,11 @@ do
 				mtdCreated=$false
 			fi
 
-			# Building table metadata
+			# Building table metadata.
 			if [ $tblCreated ] -a [ $mtdCreated ]
 			then
 
-				# Reading number of columns
+				# Reading number of columns.
 				read -p "Number of columns: " colNo
 				while ! [[ $colNo =~ ^[0-9]+$ ]]
 				do
@@ -787,7 +787,7 @@ do
 					read -p "Number of columns: " colNo
 				done
 
-				# Entering metadata
+				# Entering metadata.
 				PKchosen=0
 				table_columns=""
 
@@ -804,10 +804,10 @@ do
 						read -p "Enter name of column ${i}: " colName
 					done
 					
-					# Checking that the column name has not been already entered
+					# Checking that the column name has not been already entered.
 					if [ -z $table_columns ]
 					then
-						# First column passes the check
+						# First column passes the check.
 						table_columns+=$colName
 						table_columns+=":"
 					else
@@ -820,18 +820,18 @@ do
 						done
 						table_columns+=$colName
 						
-						# Adding : between column names as a delimiter
+						# Adding : between column names as a delimiter.
 						if ! [ $i -eq $colNo ]
 						then
 							table_columns+=":"
 						fi
 					fi
 
-					# Start populating column metadata
+					# Start populating column metadata.
 					colData+=$colName
 					colData+=":"
 
-					# 2. check for Primary key
+					# 2. check for Primary key.
 					if ! (($PKchosen)) 
 					then
 
@@ -845,7 +845,7 @@ do
 
 						if [[ $pkprmpt =~ ^[Yy]$ ]]
 						then
-							# Tag column as Primary Key
+							# Tag column as Primary Key.
 							echo Column $colName selected as Primary Key.
 							PKchosen=1
 							isPK=1
@@ -874,7 +874,7 @@ do
 					if ! (($isPK))
 					then
 
-						# Check if the column is required
+						# Check if the column is required.
 						read -p "Is this column required? (y/n) " rqprmpt
 						while ! [[ $rqprmpt =~ ^[YyNn]$ ]]
 						do
@@ -884,11 +884,11 @@ do
 
 						if [[ $rqprmpt =~ ^[Yy]$ ]]; 
 						then
-							# Column  is required
+							# Column  is required.
 							colData+="1"
 							colData+=":"
 						else
-							# Column is not required
+							# Column is not required.
 							colData+="0"
 							colData+=":"
 						fi
@@ -903,16 +903,16 @@ do
 
 						if [[ $unqprmpt =~ ^[Yy]$ ]]
 						then
-							# Column  is unique
+							# Column  is unique.
 							colData+="1"
 						else
-							# Column is nor unique
+							# Column is not unique.
 							colData+="0"
 						fi
 
 					fi	
 
-					# 5. Prompting for input type
+					# 5. Prompting for input type.
 					read -p "Choose input type. (S = string / I = integer) (s/i) " inptype
 					while ! [[ $inptype =~ ^[SsIi]$ ]]; 
 					do
@@ -927,7 +927,7 @@ do
 
 					echo $colData
 
-					# populating metadata file with the column's metadata
+					# populating metadata file with the column's metadata.
 					echo $colData >> "${dbms_path}/${1}.db/${tname}.mtd"
 
 				done
@@ -935,7 +935,7 @@ do
 				echo $table_columns >> "${dbms_path}/${1}.db/${tname}.tbl"
 				
 			else
-				echo Error during creating the table data or metadata files. Please, try again.
+				echo Error during creating the table data or metadata files. Please try again.
 			fi	
 		else
 			echo "invalid table name. The allowed characters are [ A-Z | a-z | 0-9 | _ ]." 
@@ -1042,17 +1042,17 @@ done
 while true
 do
 	echo --------------------------------- 
-	echo 1. Create a New Database
-	echo 2. Open an Existing Database
-	echo 3. Delete an Existing Database
-	echo 4. List All Available Databases
+	echo 1. Create a new database
+	echo 2. Open an existing database
+	echo 3. Delete an existing database
+	echo 4. List all available databases
 	echo 5. Exit
 	echo ---------------------------------  
 
 	
 	typeset -i option 
 
-	read -p "Select an Option, from [1-5]: " option
+	read -p "Select an Option [1-5]: " option
 	
 	# =======> to be handled
 	# if [[ ! $option =~ ^[1-5]$ ]]
@@ -1071,9 +1071,9 @@ do
 			if ! [ -d $dbms_path/$newDB.db ]
 			then
 				mkdir $dbms_path/$newDB.db
-			    	echo the database $newDB has been created successfully.
+			    	echo Database $newDB created successfully.
 			else
-				echo the database $newDB is already exist !!!
+				echo Database $newDB already exists.
 			fi
 		else
 			echo "invalid database name. The allowed characters are [ A-Z | a-z | 0-9 | _ ]." 
@@ -1089,7 +1089,7 @@ do
 		then
 			if [ -d $dbms_path/$currentDB.db ]
 			then
-			    	echo successfully connected to $currentDB.
+			    	echo Successfully connected to $currentDB.
 			    	
 			    	#################
 			    	## Tables Level
@@ -1105,7 +1105,7 @@ do
 						
 
 			else
-				echo the database $currentDB is not exist !!!
+				echo Database $currentDB not found.
 			fi
 		else
 			echo "invalid database name. The allowed characters are [ A-Z | a-z | 0-9 | _ ]." 
@@ -1122,9 +1122,9 @@ do
 			if [ -d $dbms_path/$DBName.db ]
 			then
 				rm -r $dbms_path/$DBName.db
-			    	echo the database $DBName has been deleted successfully.
+			    	echo $DBName has been deleted successfully.
 			else
-				echo the database $DBName is not exist !!!
+				echo Database $DBName not found.
 			fi
 		else
 			echo "invalid database name. The allowed characters are [ A-Z | a-z | 0-9 | _ ]." 
@@ -1137,7 +1137,7 @@ do
 
 		if [  `ls $dbms_path | wc -l` == 0 ]
 		then
-			echo No databases are available.
+			echo No databases found.
 		else
 			ls $dbms_path | grep ".db" | awk -F. '{print $1}'
 		fi
@@ -1146,7 +1146,7 @@ do
 	then
 		return
 	else 
-		echo not a valid option, you must select from the provided list of options, from [1-5].
+		echo Invalid input. Please select [1-5].
 	fi
 done
 
