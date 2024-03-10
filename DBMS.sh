@@ -512,8 +512,8 @@ do
 			cp "${dbms_path}/${1}.db/tmp.tbl" "${dbms_path}/${1}.db/${2}.tbl" 
 			rm -f "${dbms_path}/${1}.db/tmp.tbl" 
 
-			echo there are $output records that match this condition.
-			echo Successfully delete $output records.
+			echo There are $output records that match this condition.
+			echo Successfully deleted $output records.
 		else
 			echo there are no records that match this condition.
 		fi
@@ -602,15 +602,15 @@ do
 		for i in ${columns[@]}
 		do
 		mtdata=(`cat "dbms/${1}.db/${2}.mtd" | grep $i | awk -F: '{for  (i=2; i<=NF; i++) print $i}'`)
-		
-		# Prompt user for data input.
 		if ((${mtdata[0]}))
 		then
 			echo NOTE: This column is the primary key.
 		fi
 		declare -i passedChecks=0
 		checks=(0 0 0)
-		read -p "Enter the data for column ${i}: " entry
+		
+		# Prompt user for data input.
+				read -p "Enter the data for column ${i}: " entry
 		while ! (($passedChecks))
 		do
 			# Check for required, check also passes for PK enabled columns
