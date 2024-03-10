@@ -444,6 +444,93 @@ done
 }
 
 
+function DeleteByFieldValue {
+
+while true
+do
+	echo --------------------------------- 
+	echo Condition Columns
+	echo -----------------
+
+	awk -F':' '{ 
+		if (NR == 1) 
+		{ 
+			for (i=1; i<=NF; i++) 
+			{
+				print i": "$i
+			}
+			exit; 
+		} 
+	}' "${dbms_path}/${1}.db/${2}.tbl"
+
+	columns=$(
+		awk -F':' '{ 
+			if (NR == 1) 
+			{ 
+				print NF
+				exit; 
+			} 
+		}' "${dbms_path}/${1}.db/${2}.tbl"
+	)
+
+	options=$((columns + 1))
+	echo "$options: Back"
+	echo --------------------------------- 
+
+	read -p "Enter  column number. [1-$options]: " conColNum
+
+	if [ $conColNum -ge 1 -a $conColNum -le $columns ]
+	then
+		read -p "Condition value: " conValue
+
+		output=$(
+			awk -F':' -v colNum="$conColNum" -v value="$conValue" -v check="0" '
+				{
+					if (NR != 1 && $colNum == value) {
+						check += 1
+					}
+				} 
+				END {
+					print check
+				}
+			' "${dbms_path}/${1}.db/${2}.tbl"
+		)
+
+		if [ $output != 0 ]
+		then
+
+			touch "${dbms_path}/${1}.db/tmp.tbl"
+
+			awk -F':' -v colNum="$conColNum" -v value="$conValue" -v check="0" '
+				{
+					if (NR == 1 || $colNum != value) {
+						print $0
+					}
+				} 
+			' "${dbms_path}/${1}.db/${2}.tbl" > "${dbms_path}/${1}.db/tmp.tbl" 
+			
+			cp "${dbms_path}/${1}.db/tmp.tbl" "${dbms_path}/${1}.db/${2}.tbl" 
+			rm -f "${dbms_path}/${1}.db/tmp.tbl" 
+
+			echo there are $output records that match this condition.
+			echo Successfully delete $output records.
+		else
+			echo there are no records that match this condition.
+		fi
+
+	elif [ $conColNum -eq $options ]
+	then
+		break
+
+	else
+		echo "Invalid input. Please select [1-$columns]".
+	fi
+
+done
+
+}
+
+
 function passUniqChk
 {
 	for i in "${@:2}"
@@ -568,7 +655,7 @@ do
 				done
 				checks[2]=1
 			else
-				while ! [[ $entry =~ ^[0-9]+$ ]]
+				while ! [[ $entry =~ $intValuePattern ]]
 				do
 					echo Invalid input format. This column accepts numeric input only.
 					read -p "Enter the data for column ${i}: " entry
@@ -669,12 +756,15 @@ do
 			# Delete by field value.
 			elif [ $option -eq 3 ]
 			then
-				# Display table for visual aid.
+				# # Display table for visual aid.
 
-				# Prompt for value to match.
-				read -p "Enter the value(s) you want to match for deletion:  " query
-				# delete lines where the query is found.
-				awk "NR==1 || !/${query}/" dbms/${1}.db/${2}.tbl > temp && mv temp dbms/${1}.db/${2}.tbl
+				# # Prompt for value to match.
+				# read -p "Enter the value(s) you want to match for deletion:  " query
+				# # delete lines where the query is found.
+				# awk "NR==1 || !/${query}/" dbms/${1}.db/${2}.tbl > temp && mv temp dbms/${1}.db/${2}.tbl
+
+				DeleteByFieldValue $1 $2
+
 			elif [ $option -eq 4 ]
 			then
 				break
