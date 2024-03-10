@@ -834,7 +834,7 @@ do
 	
 		read -p "Enter Database Name: " newDB
 		
-		if [[ $newDB =~ ^[a-zA-Z]+[a-zA-Z0-9_]+$ ]]
+		if [[ $newDB =~ $namingRules ]]
 		then
 			if ! [ -d $dbms_path/$newDB.db ]
 			then
@@ -853,7 +853,7 @@ do
 	
 		read -p "Enter Database Name: " currentDB
 		
-		if [[ $currentDB =~ ^[a-zA-Z]+[a-zA-Z0-9_]+$ ]]
+		if [[ $currentDB =~ $namingRules ]]
 		then
 			if [ -d $dbms_path/$currentDB.db ]
 			then
@@ -885,7 +885,7 @@ do
 	
 		read -p "Enter Database Name: " DBName
 		
-		if [[ $DBName =~ ^[a-zA-Z]+[a-zA-Z0-9_]+$ ]]
+		if [[ $DBName =~ $namingRules ]]
 		then
 			if [ -d $dbms_path/$DBName.db ]
 			then
