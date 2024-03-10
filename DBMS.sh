@@ -8,9 +8,36 @@ then
     echo Welcome for the first time ... create the direcoty for your new DBMS
 fi
 
+function passUniqChk
+{
+	for i in "${@:2}"
+	do
+	if [[ ${1,,} == ${i,,} ]]
+	then
+		echo 0
+		return
+	fi
+	done
+	echo 1
+	return
+}
 
+function passAllChk
+{
+	for i in ${@:1}
+	do
+	if [[ $i -eq 0 ]]
+	then
+		echo 0
+		return
+	fi
+	done
+	echo 1
+	return
+}
 
-function Records_level {
+function Records_level
+{
 while true
 do
 	echo --------------------------------- 
@@ -31,18 +58,85 @@ do
 		# Preparing column list
 		IFS=":" read -ra columns <<< `head -n 1 "dbms/${1}.db/${2}.tbl"`
 		insertStr=""
-		for i in columns
+		declare -i colIndex=1
+		for i in ${columns[@]}
 		do
-		#TODO: 
-		# Check for PK, make sure PK contraints are followed
+		mtdata=(`cat "dbms/${1}.db/${2}.mtd" | grep $i | awk -F: '{for  (i=2; i<=NF; i++) print $i}'`)
 		
-		# Check for required, check also passes for PK enabled columns
+		# Prompt user for data input.
+		if ((${mtdata[0]}))
+		then
+			echo This column is the primary key.
+		fi
+		declare -i passedChecks=0
+		checks=(0 0 0)
+		read -p "Enter the data for column ${i}: " entry
+		while ! (($passedChecks))
+		do
+			# Check for required, check also passes for PK enabled columns
+			if ((${mtdata[0]})) ||  ((${mtdata[1]}))
+			then
+				# Perform required check
+				while [ -z ${entry} ]
+				do 
+					echo This column is required.
+					read -p "Enter the data for column ${i}: " entry
+				done
+				checks[0]=1
+			else
+				checks[0]=1
+			fi
 
-		# Check for null, check also passes for PK enabled columns
+			# Check for unique, check also passes for PK enabled columns
+			if ((${mtdata[0]})) ||  ((${mtdata[2]}))
+			then
+				existingData=`tail -n +2 dbms/test.db/into.tbl | cut -d: -f${colIndex}`
+				isunique=$(passUniqChk $entry ${existingData[@]})
 
-		#For each column, check data type.
+				# Perform unique check
+				while ! (($isunique))
+				do 
+					echo This value already exists. Data in this column has to be unique.
+					read -p "Enter the data for column ${i}: " entry
+					isunique=$(passUniqChk $entry ${existingData[@]})
+				done
+				checks[1]=1
+			else
+				checks[1]=1
+			fi
+
+			#For each column, check data type.
+			if [[ ${mtdata[3]} == "s" ]]
+			then
+				while ! [[ $entry =~ ^[a-zA-Z_\-]+$ ]]
+				do
+					echo Invalid input format. This column accepts alphabetic input only.
+					read -p "Enter the data for column ${i}: " entry
+				done
+				checks[2]=1
+			else
+				while ! [[ $entry =~ ^[0-9]+$ ]]
+				do
+					echo Invalid input format. This column accepts numeric input only.
+					read -p "Enter the data for column ${i}: " entry
+				done
+				checks[2]=1
+			fi
+			passedChecks=$(passAllChk ${checks[@]})
+		done
+		
+		# Appending Column data into the insertion string.
+		insertStr+=$entry
+		if [ $colIndex -ne ${#columns[@]} ]
+		then
+			insertStr+=":"
+		fi
+		colIndex+=1
 		done
 	
+	# All checks have been passed. Appending the data into the table, followed by a new line.
+	echo $insertStr >> dbms/${1}.db/${2}.tbl
+
 	elif [ $option -eq 2 ]
 	then
 		#TODO:
@@ -197,14 +291,11 @@ do
 						table_columns+=":"
 					else
 						newName=$(colExists $colName $table_columns)
-						# echo variable is $newName
-						# echo thatline $(colExists $colName $table_columns)
 						while ! (($newName))
 						do
 							echo Column name already exists. Please enter a different name.
 							read -p "Enter name of column ${i}: " colName
 							newName=$(colExists $colName $table_columns)
-							# echo thisline $newName
 						done
 						table_columns+=$colName
 						

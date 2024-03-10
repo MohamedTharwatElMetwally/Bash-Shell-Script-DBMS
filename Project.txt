@@ -95,4 +95,6 @@ Validations:
 3- Tables: Make sure the table does not already exist.
 4- Columns: If no column was selected as the primary key, the last column will be automatically selected as the primary key.
 5- Columns: Primary key columns do not get metadata options. They are by default Required, not null, and unique.
-6- Columns: Make sure the column name doesn not already exist
+6- Columns: Make sure the column name doesn not already exist.
+7- Columns: Make sure the column name is the same in its corresponding row in the metadata file.
+
