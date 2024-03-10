@@ -246,7 +246,7 @@ do
 	)
 
 	options=$((columns + 1))
-	echo "$result. Back"
+	echo "$options: Back"
 	echo --------------------------------- 
 
 	read -p "Enter the conditional column number. choose from [1-$options]: " conColNum
@@ -324,7 +324,7 @@ do
 	)
 
 	options=$((columns + 1))
-	echo "$result. Back"
+	echo "$options: Back"
 	echo ---------------------------------
 
 	read -p "Enter the number of column you want to update. choose from [1-$options]: " colNum

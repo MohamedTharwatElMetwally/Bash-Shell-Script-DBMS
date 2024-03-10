@@ -1,9 +1,4 @@
-id:name 
-1:Mohammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmed
-2:alaa 
-5:fatma 
-100:shams 
-200:mina 
-100000:ali 
-10000000:Mohammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmed
-1000000000:Mohammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmed
+id:name:age:salary
+1:mohamed_ali:20:123456789
+3:mohamed_ali:20:123456789
+4:mohamed_ali:20:123456789
