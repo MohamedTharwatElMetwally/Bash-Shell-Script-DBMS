@@ -36,8 +36,8 @@ do
 	echo --------------------------------- 
 	echo "1. Select * From $2"
 	echo 2. Select by Primary Key
-	echo 3. Select Specific column
-	echo 4. Select by Field value
+	echo 3. Select specific column
+	echo 4. Select by field value
 	echo 5. Back
 	echo ---------------------------------  
 
@@ -684,7 +684,7 @@ do
 			echo --------------------------------- 
 			echo 1. Clear entire table
 			echo 2. Delete by Primary Key
-			echo 3. Delete by Field Value
+			echo 3. Delete by field value
 			echo 4. Back
 			echo ---------------------------------  
 
@@ -798,7 +798,7 @@ function Tables_level
 while true
 do
 	echo --------------------------------- 
-	echo 1. List all Tables
+	echo 1. List all tables
 	echo 2. Create new table  
 	echo 3. Delete an existing table
 	echo 4. Show content of an existing table
@@ -1201,6 +1201,7 @@ do
 					fi
 						
 
+
 			else
 				echo Database $currentDB not found.
 			fi
@@ -1229,6 +1230,7 @@ do
 		fi
 		
 		
+
 	elif [ $option -eq 4 ]
 	then
 
