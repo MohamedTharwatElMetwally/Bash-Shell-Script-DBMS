@@ -220,6 +220,9 @@ do
 				read -p "Enter the value(s) you want to match for deletion:  " query
 				# delete lines where the query is found
 				awk "NR==1 || !/${query}/" dbms/${1}.db/${2}.tbl > temp && mv temp dbms/${1}.db/${2}.tbl
+			elif [ $option -eq 4 ]
+			then
+				break
 			fi		
 		done
 		echo $1
