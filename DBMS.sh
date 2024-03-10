@@ -274,7 +274,7 @@ do
 			
 			################ Updating ################
 
-			Update_Menu2 $1 $2 $conColNum $conValue
+			Update_Menu2 $1 $2 $conColNum $conValue $output
 
 			##########################################
 
@@ -350,6 +350,13 @@ do
 		)
 
 		read pk required unique type <<< "$output"
+
+		if [[ "$unique" == "1" && "$5" > 1 ]]
+		then
+			echo "This field is unique, and the number of matching records is $5, so you cannot set one value for these records together."
+			echo "Please try to change each record independently by its primary key."
+			continue
+		fi
 
 		read -p "New Value: " newValue
 
