@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 
+
 dbms_path="dbms"
 
 if ! [ -d $dbms_path ]
@@ -7,6 +8,436 @@ then
     mkdir $dbms_path
     echo Welcome for the first time ... create the direcoty for your new DBMS
 fi
+
+
+echo -e "\e[32;1m"  # switch color to green 
+cat << "EOF"
+
+  ______   ______   ____    ____   ______   
+ |_   _ `.|_   _ \ |_   \  /   _|.' ____ \  
+   | | `. \ | |_) |  |   \/   |  | (___ \_| 
+   | |  | | |  __'.  | |\  /| |   _.____`.  
+  _| |_.' /_| |__) |_| |_\/_| |_ | \____) | 
+ |______.'|_______/|_____||_____| \______.' 
+
+EOF
+echo -e "\e[0m"  # reset color
+
+
+namingRules="^[a-zA-Z]+[a-zA-Z0-9_]+$"
+intValuePattern="^[0-9]+$"
+stringValuePattern="^[a-zA-Z0-9_]+$"
+
+
+function Select {
+
+while true
+do
+	echo --------------------------------- 
+	echo "1. Select * From $2"
+	echo 2. Select by Primary Key
+	echo 3. Select Specific Column
+	echo 4. Select by Field Value
+	echo 5. Back
+	echo ---------------------------------  
+
+	typeset -i option
+	
+	read -p "Select an Option, from [1-4]: " option
+
+	if [ $option -eq 1 ]
+	then
+		awk -F':' '{
+			for (i=1; i<=NF; i++) 
+			{
+				printf "%-20s", $i  
+			}
+			printf "\n"
+		}' "${dbms_path}/${1}.db/${2}.tbl"
+
+	elif [ $option -eq 2 ]
+	then
+
+		pk_column_name=""
+		pk_column_datatype=""
+		pk_column_index=""
+
+		output=$(
+			awk -F':' '{ 
+				if ($2 == 1) 
+				{ 
+					print $1,$5,NR
+					exit; 
+				} 
+			}' "${dbms_path}/${1}.db/${2}.mtd"
+		)
+
+		read pk_column_name pk_column_datatype pk_column_index <<< "$output"
+		
+		read -p "Enter Primary Key: " pk
+
+		if [ $pk_column_datatype == 'i' ] && [[ $pk =~ ^[0-9]+$ ]] || [ $pk_column_datatype == 's' ] && [[ $pk =~ ^[a-zA-Z0-9_]+$ ]] 
+		then
+			awk -F':' -v pk_name="$pk_column_name" -v pk_type="$pk_column_datatype" -v pk_index="$pk_column_index" -v pk="$pk" '{
+				if (NR > 1) 
+				{ 
+					if ($pk_index == pk)
+					{
+						for (i=1; i<=NF; i++) 
+						{
+							printf "%-20s", $i  
+						}
+						printf "\n"
+						exit;
+					}
+				}  
+				else
+				{
+					for (i=1; i<=NF; i++) 
+					{
+						printf "%-20s", $i  
+					}
+					printf "\n"
+				}
+			}' "${dbms_path}/${1}.db/${2}.tbl"
+
+		else
+			if [ $pk_column_datatype == 'i' ]
+			then
+				echo "invalid value for integer primary key. You must enter numbers only." 
+			else
+				echo "invalid value for string primary key. The allowed characters are [ A-Z | a-z | 0-9 | _ ]." 
+			fi
+		fi
+
+
+
+	elif [ $option -eq 3 ]
+	then
+
+		printf "All Columns: "
+
+		awk -F':' '{ 
+			if (NR == 1) 
+			{ 
+				for (i=1; i<=NF; i++) 
+				{
+					printf "%-5s", $i  
+				}
+				printf "\n"
+				exit; 
+			} 
+		}' "${dbms_path}/${1}.db/${2}.tbl"
+		
+		read -p "Enter Column Name: " colName
+
+		if [[ $colName =~ ^[a-zA-Z]+[a-zA-Z0-9_]+$ ]]
+		then
+				awk -F':' -v colName="$colName" -v colIndex="0" '{
+					if (NR == 1) 
+					{ 
+						for (i=1; i<=NF; i++) 
+						{
+							if ($i == colName) 
+							{
+								print $i
+								colIndex=i;
+								break;
+							}
+						}
+						if(colIndex == 0)
+						{
+							print "this column is not exist."
+							exit;
+						}
+					}  
+					else
+					{
+						print $colIndex
+					}
+				}' "${dbms_path}/${1}.db/${2}.tbl"
+
+		else
+			echo Invalid name format. Column name cannot contain special characters or start with a number.
+		fi
+
+	elif [ $option -eq 4 ]
+	then
+
+		awk -F':' '{ 
+			if (NR == 1) 
+			{ 
+				for (i=1; i<=NF; i++) 
+				{
+					print i": "$i
+				}
+				exit; 
+			} 
+		}' "${dbms_path}/${1}.db/${2}.tbl"
+	  
+		columns=$(
+			awk -F':' '{ 
+				if (NR == 1) 
+				{ 
+					print NF
+					exit; 
+				} 
+			}' "${dbms_path}/${1}.db/${2}.tbl"
+		)
+
+		read -p "Enter column number. choose from [1-$columns]: " colNum
+
+		if [ $colNum -ge 1 -a $colNum -le $columns ]
+		then
+			read -p "Value: " value
+			awk -F':' -v colNum="$colNum" -v value="$value"  '{ 
+				if (NR == 1 || NR != 1 && $colNum == value ) 
+				{ 
+					for (i=1; i<=NF; i++) 
+					{
+						printf "%-20s", $i  
+					}
+					printf "\n"
+				} 
+			}' "${dbms_path}/${1}.db/${2}.tbl"
+		else
+			echo "not a valid column number, you must select from the provided list of columns, from [1-$columns]".
+		fi
+
+	elif [ $option -eq 5 ]
+	then
+		return
+
+	else
+		echo not a valid option, you must select from the provided list of options, from [1-4].
+	fi
+done
+
+}
+
+
+function Update {
+
+while true
+do
+	echo --------------------------------- 
+	echo Condition Columns
+	echo -----------------
+
+	awk -F':' '{ 
+		if (NR == 1) 
+		{ 
+			for (i=1; i<=NF; i++) 
+			{
+				print i": "$i
+			}
+			exit; 
+		} 
+	}' "${dbms_path}/${1}.db/${2}.tbl"
+
+	columns=$(
+		awk -F':' '{ 
+			if (NR == 1) 
+			{ 
+				print NF
+				exit; 
+			} 
+		}' "${dbms_path}/${1}.db/${2}.tbl"
+	)
+
+	options=$((columns + 1))
+	echo "$options: Back"
+	echo --------------------------------- 
+
+	read -p "Enter the conditional column number. choose from [1-$options]: " conColNum
+
+	if [ $conColNum -ge 1 -a $conColNum -le $columns ]
+	then
+		read -p "Condition Value: " conValue
+		output=$(
+			awk -F':' -v colNum="$conColNum" -v value="$conValue" -v check="0" '
+				{
+					if (NR != 1 && $colNum == value) {
+						check += 1
+					}
+				} 
+				END {
+					print check
+				}
+			' "${dbms_path}/${1}.db/${2}.tbl"
+		)
+
+
+		if [ $output != 0 ]
+		then
+			echo there are $output records match this condition.
+			
+			################ Updating ################
+
+			Update_Menu2 $1 $2 $conColNum $conValue
+
+			##########################################
+
+		else
+			echo there are no records match this condition.
+		fi
+
+	elif [ $conColNum -eq $options ]
+	then
+		break
+
+	else
+		echo "not a valid column number, you must select from the provided list of columns, from [1-$columns]".
+	fi
+
+done
+
+}
+
+function Update_Menu2  {
+
+while true
+do
+	echo --------------------------------- 
+	echo Choose a Column to update
+	echo -------------------------
+
+	awk -F':' '{ 
+		if (NR == 1) 
+		{ 
+			for (i=1; i<=NF; i++) 
+			{
+				print i": "$i
+			}
+			exit; 
+		} 
+	}' "${dbms_path}/${1}.db/${2}.tbl"
+
+	columns=$(
+		awk -F':' '{ 
+			if (NR == 1) 
+			{ 
+				print NF
+				exit; 
+			} 
+		}' "${dbms_path}/${1}.db/${2}.tbl"
+	)
+
+	options=$((columns + 1))
+	echo "$options: Back"
+	echo ---------------------------------
+
+	read -p "Enter the number of column you want to update. choose from [1-$options]: " colNum
+
+	if [ $colNum -ge 1 -a $colNum -le $columns ]
+	then
+
+		# read the metadata values: colName:PK:required:unique:datatype
+
+		pk=""
+		required=""
+		unique=""
+		type=""
+
+		output=$(
+			awk -F':' -v conColNum="$colNum" '{ 
+				if (NR == conColNum) 
+				{ 
+					print $2,$3,$4,$5
+					exit; 
+				} 
+			}' "${dbms_path}/${1}.db/${2}.mtd"
+		)
+
+		read pk required unique type <<< "$output"
+
+		read -p "New Value: " newValue
+
+		# required or not
+		if [[ "$required" == "1" && "$newValue" == "" ]]
+		then
+			echo "This Field is required. Empty values are not allowed."
+		else
+			# check datatype
+			if [[ $newValue =~ $intValuePattern && $type == 'i' ]] || [[ $newValue =~ $stringValuePattern && $type == 's' ]]
+			then
+
+				# check uniqueness
+				check=$(
+					awk -F':' -v colNum="$colNum" -v value="$newValue" -v check="0" '
+						{
+							if (NR != 1 && $colNum == value) 
+							{
+								check = 1
+								print check
+								exit
+							}
+						} 
+						END {
+							print check
+						}
+					' "${dbms_path}/${1}.db/${2}.tbl"
+				)
+                
+				if [[ $unique == 0 || ($unique == 1 && $check == 0) ]] # 3 cases: unique=1 and check=0 | unique=0 and check=1 | unique=0 and check=0
+				then
+					
+					#########  All cases are satisfied, so update the required column with the new value.  #########
+
+					touch "${dbms_path}/${1}.db/tmp.tbl" 
+
+					awk -F':' -v colNum="$colNum" -v value="$newValue" -v conColNum="$3" -v conValue="$4" '
+						{
+							if (NR != 1 && $conColNum == conValue) {
+								$colNum = value # update
+								printf "%s", $1
+								for (i = 2; i <= NF; i++) {
+									printf ":%s", $i
+								}
+								printf "\n"
+							}
+							else
+							{
+								print $0
+							}
+						} 
+					' "${dbms_path}/${1}.db/${2}.tbl" > "${dbms_path}/${1}.db/tmp.tbl" 
+					
+					cp "${dbms_path}/${1}.db/tmp.tbl" "${dbms_path}/${1}.db/${2}.tbl" 
+					rm -f "${dbms_path}/${1}.db/tmp.tbl" 
+                    
+					echo Successfully update records.
+
+					###################################################################
+
+				else # one case only: unique=1 and check=1
+					echo "The entered value already exists, and this field must be unique."
+				fi
+
+			else
+				if [ $type == 'i' ]
+				then 
+					echo "Invalid datatype. You must enter integer values."
+				else
+					echo "Invalid datatype. You must enter string values."
+				fi
+			fi
+		fi
+
+		
+
+	elif [ $colNum -eq $options ]
+	then
+		break
+
+	else
+		echo "not a valid column number, you must select from the provided list of columns, from [1-$columns]".
+	fi
+
+done
+
+}
+
 
 function passUniqChk
 {
@@ -36,7 +467,24 @@ function passAllChk
 	return
 }
 
-function Records_level
+function colExists
+{
+	IFS=':' read -ra fields <<< "$2"
+	for i in "${fields[@]}"
+	do
+		if [ $i = $1 ]
+		then
+			echo 0
+			return	
+		fi
+	done
+	echo 1
+	return
+}
+
+
+
+function Records_level 
 {
 while true
 do
@@ -225,41 +673,31 @@ do
 				break
 			fi		
 		done
-		echo $1
+
 	elif [ $option -eq 3 ]
 	then
-		echo $1
+		Update $1 $2
+
 	elif [ $option -eq 4 ]
 	then
-		echo $1
+		Select $1 $2
+
 	elif [ $option -eq 5 ]
 	then
 		return 0
+
 	elif [ $option -eq 6 ]
 	then
 		return 1
+
 	else 
 		echo not a valid option, you must select from the provided list of options, from [1-6].
 	fi
 done
 }
 
-function colExists
+function Tables_level 
 {
-	IFS=':' read -ra fields <<< "$2"
-	for i in "${fields[@]}"
-	do
-		if [ $i = $1 ]
-		then
-			echo 0
-			return	
-		fi
-	done
-	echo 1
-	return
-}
-
-function Tables_level {
 while true
 do
 	echo --------------------------------- 
@@ -628,7 +1066,7 @@ do
 	
 		read -p "Enter Database Name: " newDB
 		
-		if [[ $newDB =~ ^[a-zA-Z]+[a-zA-Z0-9_]+$ ]]
+		if [[ $newDB =~ $namingRules ]]
 		then
 			if ! [ -d $dbms_path/$newDB.db ]
 			then
@@ -647,7 +1085,7 @@ do
 	
 		read -p "Enter Database Name: " currentDB
 		
-		if [[ $currentDB =~ ^[a-zA-Z]+[a-zA-Z0-9_]+$ ]]
+		if [[ $currentDB =~ $namingRules ]]
 		then
 			if [ -d $dbms_path/$currentDB.db ]
 			then
@@ -658,6 +1096,7 @@ do
 			    	#################
 			    	
 			    	Tables_level $currentDB
+
 					status=$?
 					if [ $status == 1 ]
 					then
@@ -678,7 +1117,7 @@ do
 	
 		read -p "Enter Database Name: " DBName
 		
-		if [[ $DBName =~ ^[a-zA-Z]+[a-zA-Z0-9_]+$ ]]
+		if [[ $DBName =~ $namingRules ]]
 		then
 			if [ -d $dbms_path/$DBName.db ]
 			then
