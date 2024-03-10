@@ -12,11 +12,11 @@ function passUniqChk
 {
 	for i in "${@:2}"
 	do
-	if [[ ${1,,} == ${i,,} ]]
-	then
-		echo 0
-		return
-	fi
+		if [[ ${1,,} == ${i,,} ]]
+		then
+			echo 0
+			return
+		fi
 	done
 	echo 1
 	return
@@ -90,7 +90,7 @@ do
 			# Check for unique, check also passes for PK enabled columns
 			if ((${mtdata[0]})) ||  ((${mtdata[2]}))
 			then
-				existingData=`tail -n +2 dbms/test.db/into.tbl | cut -d: -f${colIndex}`
+				existingData=`tail -n +2 dbms/${1}.db/${2}.tbl | cut -d: -f${colIndex}`
 				isunique=$(passUniqChk $entry ${existingData[@]})
 
 				# Perform unique check
@@ -134,14 +134,94 @@ do
 		colIndex+=1
 		done
 	
-	# All checks have been passed. Appending the data into the table, followed by a new line.
+	# All checks have been passed. Appending the data 2 the table, followed by a new line.
 	echo $insertStr >> dbms/${1}.db/${2}.tbl
 
 	elif [ $option -eq 2 ]
 	then
-		#TODO:
-		# Check that the record exists
-		# Delete the record
+		while true
+		do
+			echo --------------------------------- 
+			echo 1. Clear entire table
+			echo 2. Delete by Primary Key
+			echo 3. Delete by Field Value
+			echo 4. Back
+			echo ---------------------------------  
+
+			typeset -i option
+			
+			read -p "Select an Option, from [1-4]: " option
+
+			# Clear entire table.
+			if [ $option -eq 1 ]
+			then
+				sed -i '2,$d' "${dbms_path}/${1}.db/${2}.tbl"
+				echo Table cleared successfully.
+			
+			# Delete row by Primary Key.
+			elif [ $option -eq 2 ]
+			then
+
+				# Preparing column list
+				IFS=":" read -ra columns <<< `head -n 1 "dbms/${1}.db/${2}.tbl"`
+				insertStr=""
+				declare -i colIndex=1
+				
+				# Loop over columns to find the primary key
+				for i in ${columns[@]}
+				do
+					IFS=":" read -ra mtdata <<< `cat dbms/${1}.db/${2}.mtd | grep $i`
+					if ((${mtdata[1]}))
+					then
+
+						# Tell the user which column is the primary key
+						echo column $i is the Primary Key
+						
+						# Prompt for PK value
+						read -p "Enter the Primary key for the row you want to delete: " query
+
+						# Check input data type against PK column data type.
+						if [[ ${mtdata[4]} == "s" ]]
+						then
+							while ! [[ $query =~ ^[a-zA-Z_\-]+$ ]]
+							do
+								echo Invalid input format. This column accepts alphabetic input only.
+								read -p "Enter the Primary key for the row you want to delete: " query
+							done
+						else
+							while ! [[ $query =~ ^[0-9]+$ ]]
+							do
+								echo Invalid input format. This column accepts numeric input only.
+								read -p "Enter the Primary key for the row you want to delete: " query
+							done
+						fi
+						
+						# Check if the PK exists, reusing the unique check function
+						existingData=`tail -n +2 dbms/${1}.db/${2}.tbl | cut -d: -f${colIndex}`
+						doesntExist=$(passUniqChk $query ${existingData[@]})
+						while (($doesntExist))
+						do
+							echo Primary Key does not exist.
+							read -p "Enter the Primary key for the row you want to delete: " query
+							doesntExist=$(passUniqChk $query ${existingData[@]})
+						done
+
+						# Delete the PK row.
+						awk "NR==1 || !/${query}/" dbms/${1}.db/${2}.tbl > temp && mv temp dbms/${1}.db/${2}.tbl
+						echo Row deleted successfully.
+					fi					
+					colIndex+=1
+				done
+
+			# Delete by field value.
+			elif [ $option -eq 3 ]
+			then
+				# Prompt for value to match
+				read -p "Enter the value(s) you want to match for deletion:  " query
+				# delete lines where the query is found
+				awk "NR==1 || !/${query}/" dbms/${1}.db/${2}.tbl > temp && mv temp dbms/${1}.db/${2}.tbl
+			fi		
+		done
 		echo $1
 	elif [ $option -eq 3 ]
 	then
